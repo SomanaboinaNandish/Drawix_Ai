@@ -1,0 +1,25 @@
+# Empathy Engine — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web framework
+flask>=2.3.0
+
+# TTS engines (install at least one)
+gTTS>=2.5.0              # Google Text-to-Speech (requires internet)
+pyttsx3>=2.90            # Offline TTS (no internet needed)
+
+# Audio processing (for speed/pitch modulation with gTTS)
+pydub>=0.25.1            # Requires ffmpeg installed on system
+
+# Emotion/Sentiment Detection (install at least one tier)
+
+## Tier 1: VADER (lightweight, offline, fast)
+vaderSentiment>=3.3.2
+
+## Tier 2: Transformers (best accuracy, ~250MB download on first run)
+# Uncomment to enable:
+# transformers>=4.30.0
+# torch>=2.0.0           # CPU-only torch is fine, saves space
+
+# Utilities
+numpy>=1.24.0

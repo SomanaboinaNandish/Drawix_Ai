@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Empathy Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --surface: #13141a;
+      --surface2: #1c1e27;
+      --border: #2a2d3a;
+      --text: #e8e9f0;
+      --muted: #6b7080;
+      --accent: #7c6af7;
+      --accent2: #c084fc;
+      --joy: #fbbf24;
+      --anger: #f87171;
+      --sadness: #60a5fa;
+      --fear: #a78bfa;
+      --surprise: #fb923c;
+      --disgust: #4ade80;
+      --neutral: #94a3b8;
+      --inquisitive: #38bdf8;
+      --concerned: #f472b6;
+      --sarcastic: #a8a29e;
+      --glow: rgba(124, 106, 247, 0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124,106,247,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(192,132,252,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 52px;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 30px rgba(124,106,247,0.4);
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      background: linear-gradient(135deg, #e8e9f0 30%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    /* Input panel */
+    .input-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.3);
+    }
+
+    .input-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      line-height: 1.7;
+      padding: 16px 18px;
+      resize: vertical;
+      min-height: 130px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,106,247,0.15);
+    }
+
+    textarea::placeholder { color: var(--muted); }
+
+    /* Demo chips */
+    .demo-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124,106,247,0.1);
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: linear-gradient(135deg, var(--accent), #9b8af8);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 1rem;
+      box-shadow: 0 4px 20px rgba(124,106,247,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(124,106,247,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--muted);
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* Results panel */
+    .results {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .results.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Emotion card */
+    .emotion-card {
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .emotion-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+      background: var(--emotion-color, var(--accent));
+      pointer-events: none;
+    }
+
+    .emotion-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .emotion-icon {
+      font-size: 3rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 12px var(--emotion-color, var(--accent)));
+    }
+
+    .emotion-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--emotion-color, var(--accent));
+    }
+
+    .emotion-method {
+      font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* Metrics */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .metric-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.3rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Progress bars */
+    .param-bars { display: flex; flex-direction: column; gap: 14px; }
+
+    .param-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .param-name {
+      font-size: 0.78rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      width: 60px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .param-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 100px;
+      overflow: visible;
+      position: relative;
+    }
+
+    .param-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--emotion-color, var(--accent)), var(--accent2));
+      box-shadow: 0 0 10px var(--emotion-color, var(--accent));
+      transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    /* Neutral marker */
+    .param-track::after {
+      content: '';
+      position: absolute;
+      left: 33.3%;
+      top: -4px;
+      bottom: -4px;
+      width: 2px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+    }
+
+    .param-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text);
+      width: 50px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Audio player */
+    .audio-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+
+    .audio-card-header {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    audio {
+      width: 100%;
+      height: 48px;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    audio::-webkit-media-controls-panel {
+      background: var(--surface2);
+    }
+
+    .audio-meta {
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .download-link {
+      color: var(--accent2);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    .download-link:hover { text-decoration: underline; }
+
+    /* SSML panel */
+    .ssml-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: 'DM Mono', monospace;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+
+    .ssml-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+    .ssml-block {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: #a0aec0;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.7;
+    }
+
+    .ssml-block.open { display: block; }
+
+    /* Keyword highlight in SSML */
+    .ssml-block .tag { color: var(--accent2); }
+    .ssml-block .attr { color: #fbbf24; }
+
+    /* Error */
+    .error-msg {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.3);
+      color: #f87171;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .btn-row { flex-direction: column; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-mark">
+        <div class="logo-icon">🎙</div>
+      </div>
+      <h1>Empathy Engine</h1>
+      <p class="subtitle">Emotionally intelligent text-to-speech — voice that feels human</p>
+    </header>
+
+    <div class="input-panel">
+      <label class="input-label" for="textInput">Your message</label>
+      <textarea id="textInput" placeholder="Type something — joyful, frustrated, curious, sad — and hear how the voice adapts…" maxlength="2000"></textarea>
+
+      <div class="demo-chips">
+        <span class="chip" onclick="setDemo('joy')">😄 Joyful</span>
+        <span class="chip" onclick="setDemo('anger')">😠 Angry</span>
+        <span class="chip" onclick="setDemo('sadness')">😢 Sad</span>
+        <span class="chip" onclick="setDemo('fear')">😨 Anxious</span>
+        <span class="chip" onclick="setDemo('surprise')">😲 Surprised</span>
+        <span class="chip" onclick="setDemo('neutral')">😐 Neutral</span>
+        <span class="chip" onclick="setDemo('inquisitive')">🤔 Curious</span>
+        <span class="chip" onclick="setDemo('concerned')">😟 Concerned</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="synthesizeBtn" onclick="synthesize()">
+          <span id="btnIcon">🎵</span>
+          <span id="btnText">Synthesize Voice</span>
+        </button>
+        <button class="btn-secondary" onclick="analyzeOnly()">Analyze Only</button>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <div class="results" id="results">
+      <!-- Emotion Analysis Card -->
+      <div class="emotion-card" id="emotionCard">
+        <div class="emotion-header">
+          <div class="emotion-icon" id="emotionIcon">😐</div>
+          <div>
+            <div class="emotion-name" id="emotionName">Neutral</div>
+            <div class="emotion-method" id="emotionMethod">detected via vader</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Confidence</div>
+            <div class="metric-value" id="metricScore">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Intensity</div>
+            <div class="metric-value" id="metricIntensity">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Valence</div>
+            <div class="metric-value" id="metricValence">—</div>
+          </div>
+        </div>
+
+        <div class="param-bars">
+          <div class="param-row">
+            <div class="param-name">Rate</div>
+            <div class="param-track"><div class="param-fill" id="barRate" style="width:33%"></div></div>
+            <div class="param-val" id="valRate">1.00×</div>
+          </div>
+          <div class="param-row">
+            <div class="param-name">Pitch</div>
+            <div class="param-track"><div class="param-fill" id="barPitch" style="width:33%"></div></div>
+            <div class="param-val" id="valPitch">1.00×</div>
+          </div>
+          <div class="param-row">
+            <div class="param-name">Volume</div>
+            <div class="param-track"><div class="param-fill" id="barVol" style="width:33%"></div></div>
+            <div class="param-val" id="valVol">1.00×</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio Card -->
+      <div class="audio-card" id="audioCard" style="display:none">
+        <div class="audio-card-header">🔊 Generated Audio</div>
+        <audio controls id="audioPlayer" preload="auto"></audio>
+        <div class="audio-meta">
+          <span id="audioFilename" style="font-family:DM Mono,monospace;font-size:0.75rem"></span>
+          <a class="download-link" id="downloadLink" href="#" download>⬇ Download</a>
+        </div>
+      </div>
+
+      <!-- SSML Panel -->
+      <button class="ssml-toggle" onclick="toggleSSML()">
+        &lt;/&gt; View Generated SSML ▾
+      </button>
+      <pre class="ssml-block" id="ssmlBlock"></pre>
+    </div>
+  </div>
+
+  <script>
+    const DEMOS = {
+      joy:        "This is absolutely INCREDIBLE! I just got the job offer and I couldn't be happier — this is the best day of my life!",
+      anger:      "This is completely UNACCEPTABLE. I've been waiting for over three hours and nobody has helped me. I want to speak to your manager right now!",
+      sadness:    "I'm really sorry to hear about your loss. Losing someone you care about is one of the hardest things in life, and I can only imagine how you must be feeling.",
+      fear:       "I'm honestly not sure we're prepared for this. The risks are real and I'm genuinely worried about what might happen if we proceed.",
+      surprise:   "Wait — you're telling me this all happened overnight?! I had absolutely no idea. I can't believe it.",
+      neutral:    "The meeting has been rescheduled to Tuesday at three in the afternoon. Please update your calendars accordingly.",
+      inquisitive:"I've been wondering why this keeps happening. Is there a pattern here that we're missing? What do you think is the root cause?",
+      concerned:  "I'm quite concerned about the direction we're heading. We really need to be careful and think through the implications before moving forward.",
+    };
+
+    const EMOTION_COLORS = {
+      joy: '#fbbf24', anger: '#f87171', sadness: '#60a5fa', fear: '#a78bfa',
+      surprise: '#fb923c', disgust: '#4ade80', neutral: '#94a3b8',
+      inquisitive: '#38bdf8', concerned: '#f472b6', sarcastic: '#a8a29e'
+    };
+
+    const EMOTION_ICONS = {
+      joy: '😄', anger: '😠', sadness: '😢', fear: '😨', surprise: '😲',
+      disgust: '🤢', neutral: '😐', inquisitive: '🤔', concerned: '😟', sarcastic: '😏'
+    };
+
+    function setDemo(key) {
+      document.getElementById('textInput').value = DEMOS[key] || '';
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('synthesizeBtn');
+      const icon = document.getElementById('btnIcon');
+      const text = document.getElementById('btnText');
+      btn.disabled = loading;
+      if (loading) {
+        icon.innerHTML = '<div class="spinner"></div>';
+        text.textContent = 'Processing…';
+      } else {
+        icon.textContent = '🎵';
+        text.textContent = 'Synthesize Voice';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = '⚠ ' + msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 6000);
+    }
+
+    function paramBarWidth(val, min=0.5, max=2.0) {
+      return Math.max(2, Math.min(100, ((val - min) / (max - min)) * 100)) + '%';
+    }
+
+    function renderResults(data, showAudio) {
+      const e = data.emotion;
+      const v = data.voice_params;
+      const color = EMOTION_COLORS[e.emotion] || '#7c6af7';
+
+      document.getElementById('results').classList.add('visible');
+
+      // Emotion card colors
+      const card = document.getElementById('emotionCard');
+      card.style.setProperty('--emotion-color', color);
+      document.querySelectorAll('.param-fill').forEach(el => el.style.setProperty('--emotion-color', color));
+
+      // Emotion info
+      document.getElementById('emotionIcon').textContent = EMOTION_ICONS[e.emotion] || '💬';
+      document.getElementById('emotionName').textContent = e.label;
+      document.getElementById('emotionMethod').textContent = `detected via ${e.method}`;
+      document.getElementById('metricScore').textContent = (e.score * 100).toFixed(0) + '%';
+      document.getElementById('metricIntensity').textContent = (e.intensity * 100).toFixed(0) + '%';
+      document.getElementById('metricValence').textContent = (e.valence >= 0 ? '+' : '') + e.valence.toFixed(2);
+
+      // Bars
+      document.getElementById('barRate').style.width = paramBarWidth(v.rate);
+      document.getElementById('barPitch').style.width = paramBarWidth(v.pitch);
+      document.getElementById('barVol').style.width = paramBarWidth(v.volume);
+      document.getElementById('valRate').textContent = v.rate.toFixed(2) + '×';
+      document.getElementById('valPitch').textContent = v.pitch.toFixed(2) + '×';
+      document.getElementById('valVol').textContent = v.volume.toFixed(2) + '×';
+
+      // SSML
+      document.getElementById('ssmlBlock').textContent = data.ssml || '';
+
+      // Audio
+      if (showAudio && data.audio_url) {
+        document.getElementById('audioCard').style.display = 'block';
+        const player = document.getElementById('audioPlayer');
+        player.src = data.audio_url + '?t=' + Date.now();
+        player.load();
+        document.getElementById('audioFilename').textContent = data.filename || '';
+        const dl = document.getElementById('downloadLink');
+        dl.href = data.audio_url;
+        dl.download = data.filename || 'empathy_output.mp3';
+        // Autoplay
+        player.play().catch(() => {});
+      } else {
+        document.getElementById('audioCard').style.display = 'none';
+      }
+    }
+
+    async function synthesize() {
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) { showError('Please enter some text first.'); return; }
+      setLoading(true);
+      try {
+        const res = await fetch('/synthesize', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({text})
+        });
+        const data = await res.json();
+        if (!res.ok) { showError(data.error || 'Synthesis failed.'); return; }
+        renderResults(data, true);
+      } catch(err) {
+        showError('Network error: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function analyzeOnly() {
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) { showError('Please enter some text first.'); return; }
+      try {
+        const res = await fetch('/analyze', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({text})
+        });
+        const data = await res.json();
+        if (!res.ok) { showError(data.error || 'Analysis failed.'); return; }
+        renderResults(data, false);
+      } catch(err) {
+        showError('Network error: ' + err.message);
+      }
+    }
+
+    function toggleSSML() {
+      document.getElementById('ssmlBlock').classList.toggle('open');
+    }
+
+    // Enter key in textarea = synthesize (Shift+Enter for newline)
+    document.getElementById('textInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        synthesize();
+      }
+    });
+  </script>
+</body>
+</html>
